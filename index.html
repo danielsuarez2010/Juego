@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GitFunk: Rhythm of the Code | FNF Rhythm & Trivia Game</title>
+  <meta name="description"
+    content="Juego de ritmo estilo Friday Night Funkin' y trivia interactiva sobre Git, GitHub y Frameworks Frontend con personajes desbloqueables, notas sostenidas y selección de dificultad.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ============================================================
+       MODERN CLEAN AESTHETIC DESIGN SYSTEM (NON-NEON)
+       ============================================================ */
+    :root {
+      --bg-dark: #090d16;
+      --bg-panel: rgba(15, 23, 42, 0.96);
+      --bg-card: rgba(30, 41, 59, 0.85);
+      --bg-card-hover: rgba(51, 65, 85, 0.9);
+
+      --color-sky: #38bdf8;
+      --color-indigo: #6366f1;
+      --color-violet: #8b5cf6;
+      --color-emerald: #10b981;
+      --color-amber: #f59e0b;
+      --color-rose: #f43f5e;
+      --color-cyan: #06b6d4;
+
+      --lane-0: #a855f7; /* Left: Purple */
+      --lane-1: #38bdf8; /* Down: Sky */
+      --lane-2: #10b981; /* Up: Emerald */
+      --lane-3: #f43f5e; /* Right: Rose */
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+
+      --font-display: 'Orbitron', 'Segoe UI', sans-serif;
+      --font-body: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Ambient Subtle Background */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(56, 189, 248, 0.16) 0%, transparent 45%),
+        linear-gradient(180deg, #070a12 0%, #0c1220 100%);
+    }
+
+    /* Subtle Grid Floor */
+    .grid-floor {
+      position: fixed;
+      bottom: -80px;
+      left: -20%;
+      width: 140%;
+      height: 320px;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+      background-size: 45px 45px;
+      transform: perspective(400px) rotateX(60deg);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.5;
+    }
+
+    /* Main Arcade Frame */
+    #app-container {
+      position: relative;
+      z-index: 10;
+      width: 96vw;
+      max-width: 1100px;
+      height: 94vh;
+      max-height: 760px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(99, 102, 241, 0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      height: 56px;
+      min-height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 60;
+    }
+
+    .game-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: 1.5px;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .game-logo:hover {
+      transform: scale(1.02);
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--color-indigo), var(--color-violet));
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-score-badge {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      color: var(--color-amber);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    .btn-clean {
+      font-family: var(--font-body);
+      background: rgba(30, 41, 59, 0.9);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 7px 15px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-clean:hover {
+      background: rgba(51, 65, 85, 0.95);
+      border-color: var(--color-sky);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-clean:active {
+      transform: translateY(1px);
+    }
+
+    .btn-clean.primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-color: #8b5cf6;
+      color: #fff;
+    }
+
+    .btn-clean.primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-clean.cyan {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: #38bdf8;
+    }
+
+    .btn-clean.emerald {
+      background: linear-gradient(135deg, #059669, #047857);
+      border-color: #10b981;
+    }
+
+    .btn-clean.amber {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border-color: #f59e0b;
+    }
+
+    .btn-clean.rose {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      border-color: #f43f5e;
+    }
+
+    .modal-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(244, 63, 94, 0.25);
+      color: #f43f5e;
+      border-color: #f43f5e;
+    }
+
+    .btn-large {
+      padding: 12px 24px;
+      font-size: 0.98rem;
+      font-weight: 800;
+      border-radius: 14px;
+    }
+
+    /* Screens Viewport */
+    .screens-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100% - 56px);
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none !important;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-panel);
+    }
+
+    .screen.active {
+      display: flex !important;
+      animation: screenFadeIn 0.25s ease-out forwards;
+    }
+
+    @keyframes screenFadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ============================================================
+       SCREEN 1: TITLE SCREEN
+       ============================================================ */
+    #screen-title {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .title-banner {
+      margin-bottom: 16px;
+    }
+
+    .title-main {
+      font-family: var(--font-display);
+      font-size: 3.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff, #93c5fd, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      line-height: 1.1;
+    }
+
+    .title-sub {
+      font-family: monospace;
+      font-size: 1.05rem;
+      color: var(--color-emerald);
+      letter-spacing: 2px;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .char-showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      max-width: 980px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .char-card-mini {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .char-card-mini:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-sky);
+      background: var(--bg-card-hover);
+    }
+
+    .char-card-mini .icon {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .char-card-mini h4 {
+      font-size: 0.82rem;
+      color: #fff;
+      margin-bottom: 2px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .char-card-mini p {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    .title-menu-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    /* ============================================================
+       SCREEN 2: SONG SELECT
+       ============================================================ */
+    #screen-songs {
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .screen-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .screen-header-bar h2 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .song-select-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .song-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .song-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--color-sky);
+      background: var(--bg-card-hover);
+    }
+
+    .song-card-top h4 {
+      font-size: 1.15rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+    }
+
+    .song-card-badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin: 6px 0 8px 0;
+      flex-wrap: wrap;
+    }
+
+    .song-badge-bpm {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      color: var(--color-sky);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .song-badge-rank {
+      font-size: 0.72rem;
+      color: var(--color-amber);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .song-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .song-scores-strip {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      margin-bottom: 12px;
+    }
+
+    .song-scores-strip div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ============================================================
+       SCREEN 3: GAMEPLAY
+       ============================================================ */
+    #screen-gameplay {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .dialogue-overlay {
+      position: absolute;
+      bottom: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 720px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid var(--color-sky);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: none;
+      align-items: center;
+      gap: 18px;
+      z-index: 50;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .dialogue-overlay.active {
+      display: flex;
+      animation: dialogPop 0.2s ease-out forwards;
+    }
+
+    @keyframes dialogPop {
+      from { opacity: 0; transform: translate(-50%, 15px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .dialogue-avatar {
+      font-size: 2.8rem;
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 50%;
+      padding: 8px;
+      border: 2px solid var(--color-sky);
+    }
+
+    .dialogue-speaker {
+      font-family: var(--font-display);
+      font-weight: 900;
+      color: var(--color-sky);
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .dialogue-text {
+      font-size: 0.92rem;
+      color: #fff;
+      line-height: 1.4;
+    }
+
+    .dialogue-prompt {
+      font-size: 0.75rem;
+      color: var(--color-emerald);
+      margin-top: 6px;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    /* HUD Bar */
+    .gameplay-hud-bar {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 94%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .health-bar-track {
+      position: relative;
+      width: 100%;
+      height: 16px;
+      background: #e11d48;
+      border-radius: 10px;
+      border: 2px solid #0f172a;
+      overflow: visible;
+      margin-bottom: 8px;
+    }
+
+    .health-bar-player-fill {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      background: #10b981;
+      border-radius: 0 8px 8px 0;
+      transition: width 0.04s linear;
+    }
+
+    .health-heads-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform: translate(-50%, -50%);
+      transition: left 0.04s linear;
+    }
+
+    .hud-head {
+      position: absolute;
+      top: -20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      background: #0f172a;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .hud-head.opp { left: -44px; border-color: #f43f5e; }
+    .hud-head.player { left: 4px; border-color: #10b981; }
+
+    .hud-info-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 4px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      pointer-events: all;
+    }
+
+    .hud-info-strip span { color: var(--color-sky); font-weight: bold; }
+
+    .judgment-popup {
+      position: absolute;
+      top: 35%;
+      right: 22%;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+      pointer-events: none;
+      z-index: 45;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: transform 0.1s ease, opacity 0.15s ease;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .judgment-popup.show {
+      opacity: 1;
+      transform: scale(1.15) translateY(-10px);
+    }
+
+    .countdown-banner {
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: 4rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      z-index: 60;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .countdown-banner.show { opacity: 1; }
+
+    /* Touch panel */
+    .touch-arrows-panel {
+      position: absolute;
+      bottom: 56px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 55;
+    }
+
+    .touch-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: rgba(30, 41, 59, 0.92);
+      border: 2px solid #fff;
+      color: #fff;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.08s ease;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ============================================================
+       SCREEN 4: TRIVIA ARENA & CODEX
+       ============================================================ */
+    #screen-trivia-arena {
+      padding: 20px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .trivia-arena-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .trivia-progress-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .trivia-progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-sky), var(--color-violet));
+      transition: width 0.3s ease;
+    }
+
+    .trivia-game-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 24px;
+      max-width: 720px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .trivia-round-badge {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--color-indigo);
+      color: #fff;
+    }
+
+    .trivia-round-badge.review {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--color-amber);
+      color: var(--color-amber);
+    }
+
+    .trivia-choices-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trivia-choice-btn {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f8fafc;
+      text-align: left;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .trivia-choice-btn:hover:not(:disabled) {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: var(--color-sky);
+      transform: translateX(4px);
+    }
+
+    .trivia-choice-btn.correct {
+      background: rgba(16, 185, 129, 0.3) !important;
+      border-color: var(--color-emerald) !important;
+      color: #fff !important;
+    }
+
+    .trivia-choice-btn.wrong {
+      background: rgba(244, 63, 94, 0.3) !important;
+      border-color: var(--color-rose) !important;
+      color: #fff !important;
+    }
+
+    .trivia-choice-letter {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      color: var(--color-sky);
+      background: rgba(56, 189, 248, 0.15);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+    }
+
+    .trivia-feedback-panel {
+      min-height: 50px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.95);
+      border-left: 4px solid var(--color-indigo);
+      display: none;
+    }
+
+    .trivia-feedback-panel.show { display: block; }
+    .trivia-feedback-panel.correct-fb { border-left-color: var(--color-emerald); }
+    .trivia-feedback-panel.wrong-fb { border-left-color: var(--color-rose); }
+
+    .trivia-hint-box {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1.5px dashed rgba(245, 158, 11, 0.45);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      color: #fef08a;
+      display: none;
+      line-height: 1.4;
+      animation: hintFadeIn 0.2s ease-out;
+    }
+
+    .trivia-hint-box.show {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @keyframes hintFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Codex Screen */
+    #screen-codex {
+      padding: 20px;
+      height: 100%;
+    }
+
+    .codex-grid-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      height: calc(100% - 54px);
+      overflow: hidden;
+    }
+
+    .codex-index-list {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+
+    .codex-tab-item {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .codex-tab-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+    .codex-tab-item.active { background: rgba(99, 102, 241, 0.25); border-color: var(--color-indigo); color: #fff; }
+
+    .codex-reader-view {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 22px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .codex-reader-view h3 {
+      font-family: var(--font-display);
+      color: var(--color-sky);
+      margin-bottom: 12px;
+      font-size: 1.25rem;
+    }
+
+    .codex-box-highlight {
+      background: rgba(15, 23, 42, 0.9);
+      border-left: 4px solid var(--color-indigo);
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      margin: 14px 0;
+    }
+
+    .codex-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.84rem;
+    }
+
+    .codex-data-table th, .codex-data-table td {
+      padding: 8px 10px;
+      border: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    .codex-data-table th {
+      background: rgba(99, 102, 241, 0.25);
+      color: var(--color-sky);
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+    }
+
+    /* Modal Backdrop System */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 6, 16, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+      animation: modalScaleIn 0.2s ease-out forwards;
+    }
+
+    @keyframes modalScaleIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-card {
+      background: rgba(30, 41, 59, 0.98);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .modal-stats-grid {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .modal-stats-grid p {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--color-emerald);
+    }
+
+    /* Level Launch Modal with Difficulty Selector */
+    .level-modal-diff-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .ll-diff-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+    }
+
+    .ll-diff-btn h5 { font-family: var(--font-display); font-size: 0.85rem; color: #fff; }
+    .ll-diff-btn small { font-size: 0.72rem; }
+
+    .ll-diff-btn.easy.active {
+      border-color: var(--color-emerald);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-emerald);
+    }
+
+    .ll-diff-btn.normal.active {
+      border-color: var(--color-amber);
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--color-amber);
+    }
+
+    .ll-diff-btn.hard.active {
+      border-color: var(--color-rose);
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--color-rose);
+    }
+
+    .ll-score-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+
+    /* Character Locker / Select Modal */
+    .char-locker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .char-locker-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .char-locker-card.locked {
+      opacity: 0.6;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    .char-locker-card.unlocked:hover {
+      transform: translateY(-3px);
+      border-color: var(--color-sky);
+    }
+
+    .char-locker-card.selected {
+      border-color: var(--color-emerald);
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .char-locker-avatar {
+      font-size: 2.4rem;
+      margin-bottom: 6px;
+    }
+
+    .char-locker-card h4 { font-size: 0.88rem; color: #fff; margin-bottom: 2px; }
+    .char-locker-sub { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; }
+    .char-locker-desc { font-size: 0.68rem; color: #cbd5e1; line-height: 1.3; margin-bottom: 8px; }
+
+    .badge-unlocked {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--color-emerald);
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .badge-locked {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    /* High Scores Modal Table */
+    .highscore-table-container {
+      max-height: 360px;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .highscore-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .highscore-table th, .highscore-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+    }
+
+    .highscore-table th {
+      background: rgba(30, 41, 59, 0.9);
+      color: var(--color-sky);
+      font-family: var(--font-display);
+      position: sticky;
+      top: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ambient-bg"></div>
+  <div class="grid-floor"></div>
+
+  <div id="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+      <div class="game-logo" onclick="GitApp.showTitle()">
+        <span class="logo-badge">GIT</span>
+        <span>FUNK</span>
+      </div>
+      <div class="nav-actions">
+        <div class="nav-score-badge" title="Puntuación Total Acumulada">
+          <span>🏆</span>
+          <span id="nav-global-score">0</span> PTS
+        </div>
+        <button class="btn-clean" onclick="GitApp.openCharacterSelect()">🎭 Personajes</button>
+        <button class="btn-clean amber" onclick="GitApp.openHighScoresModal()">🏆 Récords</button>
+        <button class="btn-clean primary" onclick="GitApp.startTriviaFlow()">🎯 Trivia</button>
+        <button class="btn-clean" onclick="GitApp.openSettings()">⚙️ Ajustes</button>
+      </div>
+    </header>
+
+    <!-- Screen System Viewport -->
+    <div class="screens-viewport">
+
+      <!-- SCREEN 1: TITLE SCREEN -->
+      <section class="screen active" id="screen-title">
+        <div class="title-banner">
+          <h1 class="title-main">GITFUNK</h1>
+          <p class="title-sub">&lt;Rhythm of the Code /&gt;</p>
+        </div>
+
+        <!-- 6 Character Showcase -->
+        <div class="char-showcase-grid">
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">👩‍💻</span>
+            <h4>Juana</h4>
+            <p>Protagonista</p>
+          </div>
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">🐙</span>
+            <h4>Octo-Bot</h4>
+            <p>Repo (108 BPM)</p>
+          </div>
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">👾</span>
+            <h4>Glitch Null</h4>
+            <p>Branches (125 BPM)</p>
+          </div>
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">⚡</span>
+            <h4>Master FW</h4>
+            <p>Frameworks (140 BPM)</p>
+          </div>
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">🏎️</span>
+            <h4>Turbo-Vite</h4>
+            <p>HMR (156 BPM)</p>
+          </div>
+          <div class="char-card-mini" onclick="GitApp.openCharacterSelect()">
+            <span class="icon">🐉</span>
+            <h4>Cyber Dragon</h4>
+            <p>Jefe CLI (172 BPM)</p>
+          </div>
+        </div>
+
+        <div class="title-menu-btns">
+          <button class="btn-clean primary btn-large" onclick="GitApp.startStoryMode('normal')">▶ MODO HISTORIA (JUGAR)</button>
+          <button class="btn-clean cyan btn-large" onclick="GitApp.showSongs()">🎵 SELECCIÓN DE CANCIONES</button>
+          <button class="btn-clean btn-large" onclick="GitApp.openCharacterSelect()">🎭 SELECCIONAR PERSONAJE</button>
+          <button class="btn-clean emerald btn-large" onclick="GitApp.showCodex()">📚 CÓDICE DE ESTUDIO (14 Q)</button>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: SONG SELECT -->
+      <section class="screen" id="screen-songs">
+        <div class="screen-header-bar">
+          <h2>🎵 SELECCIÓN DE CANCIONES</h2>
+          <button class="btn-clean" onclick="GitApp.showTitle()">⬅ VOLVER AL MENÚ</button>
+        </div>
+        <div class="song-select-grid" id="song-select-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- SCREEN 3: GAMEPLAY -->
+      <section class="screen" id="screen-gameplay">
+        <canvas id="game-canvas"></canvas>
+
+        <div class="countdown-banner" id="countdown-banner">READY?</div>
+        <div class="judgment-popup" id="judgment-popup">PERFECT!</div>
+
+        <!-- Story Dialogue Box -->
+        <div class="dialogue-overlay" id="dialogue-overlay" onclick="GitApp.advanceDialogue()">
+          <div class="dialogue-avatar" id="dialogue-avatar">🐙</div>
+          <div class="dialogue-content">
+            <div class="dialogue-speaker" id="dialogue-speaker">Octo-Bot</div>
+            <div class="dialogue-text" id="dialogue-text">¡Bienvenida al repositorio, Juana! Sigue el ritmo del código para hacer tu primer commit.</div>
+            <div class="dialogue-prompt">[ Clic o presiona ESPACIO para continuar ▶ ]</div>
+          </div>
+        </div>
+
+        <!-- Health Bar & HUD -->
+        <div class="gameplay-hud-bar">
+          <div class="health-bar-track">
+            <div class="health-bar-player-fill" id="health-bar-fill"></div>
+            <div class="health-heads-container" id="health-heads-anchor">
+              <div class="hud-head opp" id="hud-opp-avatar">🐙</div>
+              <div class="hud-head player" id="hud-player-avatar">👩‍💻</div>
+            </div>
+          </div>
+          <div class="hud-info-strip">
+            <div>Pista: <span id="hud-track-title">First Commit</span></div>
+            <div>Dificultad: <span id="hud-diff-label">NORMAL</span></div>
+            <div>Puntos: <span id="hud-score">0</span></div>
+            <div>Combo: <span id="hud-combo">0</span></div>
+            <div>Precisión: <span id="hud-accuracy">100%</span></div>
+            <button class="btn-clean" style="padding:3px 10px; font-size:0.75rem;" onclick="GitApp.togglePause()">⏸️ Pausa</button>
+            <button class="btn-clean rose" style="padding:3px 10px; font-size:0.75rem;" onclick="GitApp.showSongs()">🚪 Salir</button>
+          </div>
+        </div>
+
+        <!-- Touch Controls -->
+        <div class="touch-arrows-panel">
+          <button class="touch-btn" style="border-color:var(--lane-0);" onmousedown="GitApp.triggerLane(0)" onmouseup="GitApp.releaseLane(0)"
+            ontouchstart="GitApp.triggerLane(0); event.preventDefault();" ontouchend="GitApp.releaseLane(0); event.preventDefault();">⬅️</button>
+          <button class="touch-btn" style="border-color:var(--lane-1);" onmousedown="GitApp.triggerLane(1)" onmouseup="GitApp.releaseLane(1)"
+            ontouchstart="GitApp.triggerLane(1); event.preventDefault();" ontouchend="GitApp.releaseLane(1); event.preventDefault();">⬇️</button>
+          <button class="touch-btn" style="border-color:var(--lane-2);" onmousedown="GitApp.triggerLane(2)" onmouseup="GitApp.releaseLane(2)"
+            ontouchstart="GitApp.triggerLane(2); event.preventDefault();" ontouchend="GitApp.releaseLane(2); event.preventDefault();">⬆️</button>
+          <button class="touch-btn" style="border-color:var(--lane-3);" onmousedown="GitApp.triggerLane(3)" onmouseup="GitApp.releaseLane(3)"
+            ontouchstart="GitApp.triggerLane(3); event.preventDefault();" ontouchend="GitApp.releaseLane(3); event.preventDefault();">➡️</button>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: TRIVIA ARENA -->
+      <section class="screen" id="screen-trivia-arena">
+        <div class="trivia-arena-header">
+          <h2 style="font-family:var(--font-display); color:var(--color-amber); display:flex; align-items:center; gap:8px;">
+            🎯 TRIVIA FRONTEND & GIT (14 PREGUNTAS)
+          </h2>
+          <button class="btn-clean" onclick="GitApp.showTitle()">⬅ SALIR AL MENÚ</button>
+        </div>
+
+        <div class="trivia-progress-bar-wrap">
+          <div class="trivia-progress-bar-fill" id="trivia-progress-fill"></div>
+        </div>
+
+        <div id="trivia-active-question-card" class="trivia-game-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="trivia-round-badge" id="trivia-phase-label">Ronda Principal: Pregunta 1 / 14</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn-clean amber" id="btn-trivia-hint" style="padding:4px 12px; font-size:0.78rem;" onclick="GitApp.toggleTriviaHint()">💡 Ver Pista</button>
+              <span style="font-family:var(--font-display); color:var(--color-amber); font-size:0.85rem;" id="trivia-streak-count">🔥 Racha: 0</span>
+            </div>
+          </div>
+
+          <h3 class="trivia-question-text" id="trivia-question-prompt">¿Pregunta?</h3>
+
+          <!-- Educational Hint Container -->
+          <div class="trivia-hint-box" id="trivia-hint-box">
+            <span style="font-size:1.3rem;">💡</span>
+            <div id="trivia-hint-text">Pista educativa...</div>
+          </div>
+
+          <div class="trivia-choices-grid" id="trivia-choices-container"></div>
+
+          <div class="trivia-feedback-panel" id="trivia-feedback-panel">
+            <div id="trivia-feedback-title" style="font-weight:800; font-size:1.02rem; margin-bottom:4px;">¡CORRECTO!</div>
+            <div id="trivia-feedback-exp" style="font-size:0.86rem; color:#cbd5e1; line-height:1.4;">Explicación...</div>
+            <button class="btn-clean primary" id="btn-trivia-next" style="margin-top:10px;"
+              onclick="GitApp.nextTriviaQuestion()">SIGUIENTE PREGUNTA ▶</button>
+          </div>
+        </div>
+
+        <!-- Completion Card -->
+        <div id="trivia-results-card" class="modal-card" style="display:none; max-width:560px; margin:auto;">
+          <div style="font-size:3.5rem;">🏆</div>
+          <h3 style="color:var(--color-emerald);">¡MAESTRÍA TOTAL EN GIT Y FRONTEND!</h3>
+          <p style="color:#cbd5e1;">Has completado y repasado las 14 preguntas de investigación.</p>
+          <div class="modal-stats-grid">
+            <div><small>Puntos</small><p id="t-score">+7,000</p></div>
+            <div><small>Precisión</small><p id="t-acc">100%</p></div>
+            <div><small>Rango</small><p style="color:var(--color-amber);">Git Master 🚀</p></div>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="btn-clean primary btn-large" onclick="GitApp.startStoryMode('normal')">IR AL MODO HISTORIA ▶</button>
+            <button class="btn-clean cyan btn-large" onclick="GitApp.startTriviaFlow()">REPETIR TRIVIA 🔄</button>
+            <button class="btn-clean btn-large" onclick="GitApp.showTitle()">MENÚ PRINCIPAL 🏠</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: CODEX -->
+      <section class="screen" id="screen-codex">
+        <div class="screen-header-bar">
+          <h2>📚 CÓDICE: GIT, GITHUB Y FRONTEND</h2>
+          <button class="btn-clean" onclick="GitApp.showTitle()">⬅ VOLVER AL MENÚ</button>
+        </div>
+        <div class="codex-grid-layout">
+          <aside class="codex-index-list" id="codex-index-list"></aside>
+          <article class="codex-reader-view" id="codex-reader-view"></article>
+        </div>
+      </section>
+
+    </div><!-- End screens-viewport -->
+
+    <!-- MODAL: LEVEL LAUNCH & DIFFICULTY SELECTOR -->
+    <!-- MODAL: LEVEL LAUNCH & DIFFICULTY SELECTOR -->
+    <div class="modal-backdrop" id="level-launch-modal">
+      <div class="modal-card">
+        <div class="modal-header-row">
+          <h3 id="ll-song-title">🐙 First Commit</h3>
+          <button class="modal-close-btn" onclick="GitApp.closeModals()" title="Cerrar ventana">✕</button>
+        </div>
+        <p id="ll-song-desc" style="font-size:0.85rem; color:var(--text-muted);">Descripción del nivel...</p>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; background:rgba(15,23,42,0.6); padding:10px; border-radius:12px;">
+          <span id="ll-opp-avatar" style="font-size:2rem;">🐙</span>
+          <div style="text-align:left;">
+            <strong id="ll-opp-name">Octo-Bot</strong>
+            <p id="ll-opp-sub" style="font-size:0.75rem; color:var(--text-muted);">Guardián del Repositorio</p>
+          </div>
+          <span id="ll-song-bpm" class="song-badge-bpm" style="margin-left:auto;">108 BPM</span>
+        </div>
+
+        <h4 style="font-size:0.9rem; text-align:left; color:#fff; margin-top:4px;">Elige la Dificultad:</h4>
+        <div class="level-modal-diff-grid">
+          <div class="ll-diff-btn easy" data-diff="easy" onclick="GitApp.selectLevelDifficulty('easy')">
+            <span style="font-size:1.4rem;">🟢</span>
+            <h5>FÁCIL</h5>
+            <small>440 px/s</small>
+          </div>
+          <div class="ll-diff-btn normal active" data-diff="normal" onclick="GitApp.selectLevelDifficulty('normal')">
+            <span style="font-size:1.4rem;">🟡</span>
+            <h5>NORMAL</h5>
+            <small>520 px/s</small>
+          </div>
+          <div class="ll-diff-btn hard" data-diff="hard" onclick="GitApp.selectLevelDifficulty('hard')">
+            <span style="font-size:1.4rem;">🔴</span>
+            <h5>DIFÍCIL</h5>
+            <small>620 px/s</small>
+          </div>
+        </div>
+
+        <!-- Live Score Display for Chosen Difficulty -->
+        <div id="ll-score-display" class="ll-score-card">
+          <!-- Populated by JS -->
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:6px;">
+          <button class="btn-clean primary btn-large" style="flex:1;" onclick="GitApp.startSelectedLevel()">▶ ¡INICIAR CANCIÓN!</button>
+          <button class="btn-clean" onclick="GitApp.closeModals()">⬅ VOLVER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CHARACTER SELECTOR & UNLOCKS -->
+    <div class="modal-backdrop" id="char-select-modal">
+      <div class="modal-card" style="max-width:680px;">
+        <div class="modal-header-row">
+          <h3>🎭 SELECCIÓN DE PERSONAJE JUGABLE</h3>
+          <button class="modal-close-btn" onclick="GitApp.closeModals()" title="Cerrar">✕</button>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-muted);">
+          ¡Gana un nivel en las 3 dificultades (Fácil, Normal y Difícil) para desbloquear a su enemigo como personaje jugable!
+        </p>
+
+        <div class="char-locker-grid" id="char-select-grid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="btn-clean primary" onclick="GitApp.closeModals()">CONFIRMAR PERSONAJE</button>
+          <button class="btn-clean" onclick="GitApp.closeModals()">⬅ VOLVER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HIGH SCORES -->
+    <div class="modal-backdrop" id="highscores-modal">
+      <div class="modal-card" style="max-width:640px;">
+        <div class="modal-header-row">
+          <h3 style="color:var(--color-amber);">🏆 SALÓN DE RÉCORDS INDIVIDUALES</h3>
+          <button class="modal-close-btn" onclick="GitApp.closeModals()" title="Cerrar">✕</button>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-muted);">Puntajes más altos guardados por nivel y dificultad:</p>
+        <div class="highscore-table-container">
+          <table class="highscore-table">
+            <thead>
+              <tr>
+                <th>Nivel / Canción</th>
+                <th>Fácil 🟢</th>
+                <th>Normal 🟡</th>
+                <th>Difícil 🔴</th>
+              </tr>
+            </thead>
+            <tbody id="highscores-table-body">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px;">
+          <button class="btn-clean primary" onclick="GitApp.closeModals()">⬅ VOLVER AL JUEGO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PAUSE -->
+    <div class="modal-backdrop" id="modal-pause">
+      <div class="modal-card">
+        <div class="modal-header-row">
+          <h3>⏸️ JUEGO PAUSADO</h3>
+          <button class="modal-close-btn" onclick="GitApp.togglePause()" title="Reanudar">✕</button>
+        </div>
+        <button class="btn-clean primary btn-large" onclick="GitApp.togglePause()">▶ REANUDAR</button>
+        <button class="btn-clean cyan" onclick="GitApp.restartSong()">🔄 REINICIAR CANCIÓN</button>
+        <button class="btn-clean" onclick="GitApp.showSongs()">🚪 SALIR A CANCIONES</button>
+        <button class="btn-clean" onclick="GitApp.showTitle()">🏠 MENÚ PRINCIPAL</button>
+      </div>
+    </div>
+
+    <!-- MODAL: VICTORY -->
+    <div class="modal-backdrop" id="modal-victory">
+      <div class="modal-card">
+        <div class="modal-header-row">
+          <h3 style="color:var(--color-sky);">🎉 ¡COMMIT EXITOSO!</h3>
+          <button class="modal-close-btn" onclick="GitApp.showSongs()" title="Salir">✕</button>
+        </div>
+        <div id="victory-new-record" style="display:none; color:var(--color-amber); font-weight:800;">🌟 ¡NUEVO RÉCORD PERSONAL! 🌟</div>
+        <div id="victory-unlock-alert" style="display:none; color:var(--color-emerald); font-weight:800; background:rgba(16,185,129,0.15); padding:8px; border-radius:8px;">
+          🔓 ¡PERSONAJE DESBLOQUEADO PARA JUGAR!
+        </div>
+        <p>¡Has derrotado al oponente y sincronizado el código a la perfección!</p>
+        <div class="modal-stats-grid">
+          <div><small>Puntos</small><p id="v-score">0</p></div>
+          <div><small>Max Combo</small><p id="v-combo">0</p></div>
+          <div><small>Precisión</small><p id="v-acc">100%</p></div>
+        </div>
+        <button class="btn-clean primary btn-large" onclick="GitApp.nextSong()">SIGUIENTE NIVEL ▶</button>
+        <button class="btn-clean cyan" onclick="GitApp.restartSong()">REPETIR PISTA 🔄</button>
+        <button class="btn-clean" onclick="GitApp.showSongs()">SELECCIÓN DE CANCIONES 🎵</button>
+        <button class="btn-clean" onclick="GitApp.showTitle()">MENÚ PRINCIPAL 🏠</button>
+      </div>
+    </div>
+
+    <!-- MODAL: GAMEOVER -->
+    <div class="modal-backdrop" id="modal-gameover">
+      <div class="modal-card" style="border-color:var(--color-rose);">
+        <div class="modal-header-row">
+          <h3 style="color:var(--color-rose);">💀 ¡MERGE CONFLICT!</h3>
+          <button class="modal-close-btn" onclick="GitApp.showSongs()" title="Salir">✕</button>
+        </div>
+        <p>La barra de vida llegó a cero. Los conflictos de código rompieron la compilación.</p>
+        <div class="modal-stats-grid">
+          <div><small>Puntos alcanzados</small><p id="go-score" style="color:var(--color-rose);">0</p></div>
+        </div>
+        <button class="btn-clean primary btn-large" onclick="GitApp.restartSong()">REINTENTAR 🔄</button>
+        <button class="btn-clean cyan" onclick="GitApp.showSongs()">SELECCIONAR CANCIÓN 🎵</button>
+        <button class="btn-clean" onclick="GitApp.showTitle()">MENÚ PRINCIPAL 🏠</button>
+      </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div class="modal-backdrop" id="settings-modal">
+      <div class="modal-card" style="max-width:520px; text-align:left;">
+        <div class="modal-header-row">
+          <h3>⚙️ CONTROLES Y AJUSTES</h3>
+          <button class="modal-close-btn" onclick="GitApp.closeModals()" title="Cerrar">✕</button>
+        </div>
+        <div style="background:rgba(15,23,42,0.8); padding:16px; border-radius:12px; font-size:0.88rem; line-height:1.6;">
+          <h4 style="color:var(--color-sky); margin-bottom:8px;">🎮 Teclado de Ritmo:</h4>
+          <p>• <strong>D o Flecha Izquierda (←):</strong> Flecha Morada Izquierda</p>
+          <p>• <strong>F o Flecha Abajo (↓):</strong> Flecha Celeste Abajo</p>
+          <p>• <strong>J o Flecha Arriba (↑):</strong> Flecha Verde Arriba</p>
+          <p>• <strong>K o Flecha Derecha (→):</strong> Flecha Rosada Derecha</p>
+          <p>• <strong>Notas Sostenidas:</strong> ¡Mantén presionada la tecla durante la estela de la nota!</p>
+          <p>• <strong>Espacio / Enter:</strong> Avanzar diálogos y preguntas</p>
+          <p>• <strong>Escape:</strong> Pausar canción</p>
+        </div>
+        <button class="btn-clean primary" style="width:100%;" onclick="GitApp.closeModals()">ENTENDIDO / VOLVER</button>
+      </div>
+    </div>
+
+  </div><!-- End app-container -->
+
+  <!-- Load Game Engine Scripts -->
+  <script src="js/audioEngine.js"></script>
+  <script src="js/songs.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/codex.js"></script>
+  <script src="js/gameEngine.js"></script>
+
+  <script>
+    // Resilient Bridge between UI elements and Game Engine
+    const GitApp = {
+      showTitle() {
+        if (window.game) window.game.backToMenu();
+        else {
+          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+          document.getElementById('screen-title')?.classList.add('active');
+        }
+      },
+      showSongs() {
+        if (window.game) window.game.openFreeplay();
+        else {
+          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+          document.getElementById('screen-songs')?.classList.add('active');
+        }
+      },
+      showCodex() {
+        if (window.game) window.game.openCodex();
+        else {
+          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+          document.getElementById('screen-codex')?.classList.add('active');
+        }
+      },
+      startStoryMode(diff = 'normal') {
+        if (window.game) window.game.startStoryMode(diff);
+      },
+      openCharacterSelect() {
+        if (window.game) window.game.openCharacterSelect();
+        else document.getElementById('char-select-modal')?.classList.add('active');
+      },
+      openHighScoresModal() {
+        if (window.game) window.game.openHighScoresModal();
+        else document.getElementById('highscores-modal')?.classList.add('active');
+      },
+      openSettings() {
+        if (window.game) window.game.openSettings();
+        else document.getElementById('settings-modal')?.classList.add('active');
+      },
+      startTriviaFlow() {
+        if (window.game) window.game.openTrivia();
+        else {
+          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+          document.getElementById('screen-trivia-arena')?.classList.add('active');
+        }
+      },
+      nextTriviaQuestion() {
+        if (window.game) window.game.nextTriviaQuestion();
+      },
+      toggleTriviaHint() {
+        if (window.game) window.game.toggleTriviaHint();
+      },
+      closeModals() {
+        if (window.game) window.game.closeAllModals();
+        document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+      },
+      togglePause() {
+        if (window.game) window.game.togglePause();
+      },
+      restartSong() {
+        if (window.game) window.game.restartSong();
+      },
+      nextSong() {
+        if (window.game) window.game.nextSong();
+      },
+      selectLevelDifficulty(diff) {
+        if (window.game) window.game.selectLevelModalDifficulty(diff);
+      },
+      startSelectedLevel() {
+        if (window.game) window.game.startSongFromModal();
+      },
+      triggerLane(lane) {
+        if (window.game) {
+          window.game.activeKeys[lane] = true;
+          window.game.onPlayerPress(lane);
+        }
+      },
+      releaseLane(lane) {
+        if (window.game) {
+          window.game.activeKeys[lane] = false;
+          window.game.onPlayerRelease(lane);
+        }
+      },
+      advanceDialogue() {
+        const overlay = document.getElementById('dialogue-overlay');
+        if (overlay) overlay.classList.remove('active');
+      }
+    };
+    window.GitApp = GitApp;
+  </script>
+</body>
+
+</html>
